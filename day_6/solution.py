@@ -1,14 +1,20 @@
 import os
 input_file = os.path.join(os.path.dirname(__file__), 'input.txt')
 
+def find_unique_sequence(f, length):
+    buffer = f.read(length)
+    if buffer == '':
+        return None
+    while True:
+        if len(set(buffer)) == length:
+            return f.tell()
+        buffer = buffer[1:] + f.read(1)
+
 # File is a single line
 with open(input_file, 'r') as f:
-    # Read first 4 characters
-    buffer = f.read(4)
-    while True:
-        # Check number of unique characters
-        if len(set(buffer)) == 4:
-            print(f'Unique sequence ends at {f.tell()}')
-            exit()
-        # Read next character
-        buffer = buffer[1:] + f.read(1)
+    part_1 = find_unique_sequence(f, 4)
+    f.seek(0)
+    part_2 = find_unique_sequence(f, 14)
+
+print(f'Part 1: {part_1}')
+print(f'Part 2: {part_2}')
