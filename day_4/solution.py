@@ -9,6 +9,7 @@ def expand_section(section):
 input_file = os.path.join(os.path.dirname(__file__), 'input.txt')
 
 subset_count = 0
+overlap_count = 0
 with open(input_file, 'r') as f:
     for line in f:
         # Get expanded sections for each elf
@@ -18,5 +19,9 @@ with open(input_file, 'r') as f:
             subset_count += 1
         elif sections[1].issubset(sections[0]):
             subset_count += 1
+        # Check for overlap between sections
+        if len(sections[0].intersection(sections[1])) > 0:
+            overlap_count += 1
 
 print(f'Number of subsets: {subset_count}')
+print(f'Number of overlaps: {overlap_count}')
