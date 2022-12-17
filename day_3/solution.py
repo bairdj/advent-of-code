@@ -50,3 +50,32 @@ with open(input_path, 'r') as f:
         priority_sum += item_priorities[common_item]
 
 print(f"Priority sum of common items: {priority_sum}")
+
+# Part 2
+part_2_sum = 0
+with open(input_path, 'r') as f:
+    # Read in sets of 3 lines
+    while True:
+        i = 0
+        group_rucksacks = []
+        while i < 3:
+            line = f.readline()
+            # EOF
+            if not line:
+                break
+            group_rucksacks.append(Rucksack(line.strip()))
+            i += 1
+        if len(group_rucksacks) == 0:
+            break
+        # Find intersection of all 3 rucksacks
+        # There should only be 1 common item
+        common_items = set.intersection(*[set(r.items) for r in group_rucksacks])
+        if len(common_items) != 1:
+            raise Exception('There should only be 1 common item')
+        common_item = common_items.pop()
+        part_2_sum += item_priorities[common_item]
+
+print(f"Sum of group priorities: {part_2_sum}")
+
+        
+        
