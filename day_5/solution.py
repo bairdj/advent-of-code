@@ -1,5 +1,6 @@
 import os
 import re
+import copy
 class Environment:
     def __init__(self, n_stacks, debug=False):
         self.stacks = [[] for _ in range(n_stacks)]
@@ -21,6 +22,15 @@ class Environment:
                 print(f'Moving {crate_to_move} from stack {from_stack} to stack {to_stack}')
             self.stacks[to_stack].append(crate_to_move)
             i += 1
+
+    # Allow moving a stack of crates in one go
+    def move_stack(self, from_stack: int, to_stack: int, n: int):
+        # Crates to move
+        crates_to_move = self.stacks[from_stack][-n:]
+        # Remove crates from stack
+        self.stacks[from_stack] = self.stacks[from_stack][:-n]
+        # Append crates to other stack
+        self.stacks[to_stack].extend(crates_to_move)
 
     # Don't actually need this for AOC just for testing
     def pretty_print(self):
@@ -66,6 +76,9 @@ with open(input_file, 'r') as f:
     # Skip blank line before moves
     next(f)
     environment.pretty_print()
+    # Clone environment for part 2
+    environment_2 = copy.deepcopy(environment)
+
     # Start parsing moves
     move_pattern = re.compile(r'move (\d+) from (\d+) to (\d+)')
     for line in f:
@@ -76,6 +89,11 @@ with open(input_file, 'r') as f:
         from_stack -= 1
         to_stack -= 1
         environment.move(from_stack, to_stack, n)
+        environment_2.move_stack(from_stack, to_stack, n)
         
+    print("Part 1:")
     environment.pretty_print()
-    print(environment.top_stacks)
+    print(f"Top of stacks: {environment.top_stacks}")
+    print("Part 2:")
+    environment_2.pretty_print()
+    print(f"Top of stacks: {environment_2.top_stacks}")
