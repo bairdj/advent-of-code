@@ -113,3 +113,14 @@ all_subdirectories = get_all_subdirectories(fs.root)
 small_directories = [directory for directory in all_subdirectories if directory.get_size() < 100000]
 # Get sum of small_directories
 print(sum([directory.get_size() for directory in small_directories]))
+
+# Part 2
+used_space = fs.root.get_size()
+total_space = 70000000
+free_space_required = 30000000
+space_to_clear = used_space - total_space + free_space_required
+# Find directories > free_space_required
+eligible_deletion_directories = [directory for directory in all_subdirectories if directory.get_size() > space_to_clear]
+# Find smallest eligible directory
+smallest_eligible_directory = min(eligible_deletion_directories, key=lambda directory: directory.get_size())
+print(f"Size of directory to delete: {smallest_eligible_directory.get_size()}")
