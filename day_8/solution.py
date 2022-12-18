@@ -1,4 +1,5 @@
 import os
+from functools import reduce
 
 class Grid:
     def __init__(self, width, height):
@@ -77,11 +78,36 @@ class GridSolver:
             else:
                 visible_trees.append((x, y))
         return {'visible': visible_trees, 'invisible': invisible_trees}
-            
-            
 
+    # For part 2
+    # Move and accumulate the number of cells that are lower than height
+    # Stop when an edge is reached or a cell >= height is reached
+    def move_until_height(self, x: int, y: int, dx: int, dy: int, height: int) -> int:
+        # New coordinate
+        x += dx
+        y += dy
+        new_value = self.grid[x, y]
+        if new_value < height:
+            # Check if an edge has been reached
+            if x == 0 or x == self.grid.width - 1 or y == 0 or y == self.grid.height - 1:
+                return 1
+            return 1 + self.move_until_height(x, y, dx, dy, height)
+        return 1
 
-
+    def solve_part_2(self):
+        candidates = self.get_candidates()
+        # Calculate scenic score for each candidate
+        scenic_scores = []
+        for x, y in candidates:
+            height = self.grid[x, y]
+            moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            scores = [self.move_until_height(x, y, dx, dy, height) for dx, dy in moves]
+            # Multiply all scores
+            scenic_score = reduce(lambda x, y: x * y, scores)
+            scenic_scores.append((x, y, scenic_score))
+        # Find the maximum scenic score
+        max_score = max(scenic_scores, key=lambda x: x[2])
+        return max_score
 
     
 
@@ -107,3 +133,7 @@ tree_visibility = solver.solve()
 # Print number of visible and invisible trees
 print(f"Visible trees: {len(tree_visibility['visible'])}")
 print(f"Invisible trees: {len(tree_visibility['invisible'])}")
+print()
+print("Part 2:")
+max_score = solver.solve_part_2()
+print(f"Max score: {max_score[2]} at ({max_score[0]}, {max_score[1]})")
