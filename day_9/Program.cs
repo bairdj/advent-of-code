@@ -133,6 +133,35 @@
         }
     }
 
+    class Rope 
+    {
+        private List<Tail> _tails;
+
+        public List<Tail> Tails => _tails;
+
+        public Rope(int x, int y, int tailCount)
+        {
+            // Check tailCount is at least 2
+            if (tailCount < 2) {
+                throw new ArgumentException("Tail count must be at least 2");
+            }
+            _tails = new List<Tail>();
+            for(var i = 0; i < tailCount; i++) {
+                _tails.Add(new Tail(x, y));
+            }
+        }
+
+        public void Move(Direction direction)
+        {
+            // Move the head
+            _tails[0].Move(direction);
+            // Every tail needs to chase the tail in front of it
+            for(var i = 1; i < _tails.Count; i++) {
+                _tails[i].ChaseHead(_tails[i - 1]);
+            }
+        }
+    }
+
     class Program
     {
         private const int OriginX = 0;
@@ -152,6 +181,19 @@
             }
             // Get number of unique positions visited by tail
             Console.WriteLine(tail.UniquePositionsVisited());
+
+            // Part 2
+            var rope = new Rope(OriginX, OriginY, 10);
+
+            foreach(var move in moves) {
+                // Apply each move to the rope
+                for(var i = 0; i < move.Distance; i++) {
+                    rope.Move(move.Direction);
+                }
+            }
+
+            // Get number of unique positions visited by the last tail
+            Console.WriteLine($"Last tail visited {rope.Tails.Last().UniquePositionsVisited()} unique positions");
         }
     }
 }
