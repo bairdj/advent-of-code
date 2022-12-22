@@ -1,6 +1,7 @@
 import re
 import os
 from typing import List, Callable
+import copy
 
 class Item:
     def __init__(self, worry_level: int):
@@ -19,7 +20,7 @@ class Monkey:
     def add_item(self, item: Item):
         self.items.append(item)
 
-    def process_round(self):
+    def process_round(self, modulo = None):
         thrown_items = {}
         # If monkey has no items, return
         if not self.items:
@@ -28,8 +29,11 @@ class Monkey:
             self.inspection_count += 1
             # Initial worry level
             worry_level = self.operation(item.worry_level)
-            # Divide worry level by 3 using int division
-            worry_level //= 3
+            if not modulo:
+                # Divide worry level by 3 using int division
+                worry_level //= 3
+            else:
+                worry_level %= modulo
             # Update item worry level
             item.worry_level = worry_level
             throw_to = self.throw_true if worry_level % self.test == 0 else self.throw_false
@@ -67,16 +71,41 @@ with open(input_path, 'r') as input_file:
     # Find all monkey_pattern matches in input file
     monkeys = {monkey.id: monkey for monkey in (Monkey.from_match(match) for match in monkey_pattern.finditer(input_file.read()))}
 
+# Copy initial monkey state
+monkeys_part_1 = copy.deepcopy(monkeys)
+monkeys_part_2 = copy.deepcopy(monkeys)
+
 rounds = 20
 for round in range(rounds):
     # Process each monkey
-    for monkey in monkeys.values():
+    for monkey in monkeys_part_1.values():
         thrown_items = monkey.process_round()
         if thrown_items:
             for monkey_id, items in thrown_items.items():
-                monkeys[monkey_id].items.extend(items)
+                monkeys_part_1[monkey_id].items.extend(items)
 
 # Get the top 2 monkeys by inspection count
-top_monkeys = sorted(monkeys.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
+top_monkeys = sorted(monkeys_part_1.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
+# Multiply the inspection counts of the top 2 monkeys
+print(top_monkeys[0].inspection_count * top_monkeys[1].inspection_count)
+
+# Part 2
+rounds = 10000
+for round in range(rounds):
+    # Use modular arithmetic trick (from Reddit)
+    # Get common denominator of all test values
+    common_denominator = 1
+    for monkey in monkeys_part_2.values():
+        common_denominator *= monkey.test
+    
+    # Process each monkey
+    for monkey in monkeys_part_2.values():
+        thrown_items = monkey.process_round(modulo=common_denominator)
+        if thrown_items:
+            for monkey_id, items in thrown_items.items():
+                monkeys_part_2[monkey_id].items.extend(items)
+
+# Get the top 2 monkeys by inspection count
+top_monkeys = sorted(monkeys_part_2.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
 # Multiply the inspection counts of the top 2 monkeys
 print(top_monkeys[0].inspection_count * top_monkeys[1].inspection_count)
