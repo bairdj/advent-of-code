@@ -12,3 +12,6 @@ My solutions for [Advent of Code 2022](https://adventofcode.com/).
 7. Python
 8. Python
 9. C#
+10. R
+11. Python
+12. C#
