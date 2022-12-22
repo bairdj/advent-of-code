@@ -20,11 +20,10 @@ class Monkey:
     def add_item(self, item: Item):
         self.items.append(item)
 
-    def process_round(self, modulo = None):
-        thrown_items = {}
+    def process_round(self, other_monkeys, modulo = None):
         # If monkey has no items, return
         if not self.items:
-            return thrown_items
+            return
         for item in self.items:
             self.inspection_count += 1
             # Initial worry level
@@ -37,12 +36,9 @@ class Monkey:
             # Update item worry level
             item.worry_level = worry_level
             throw_to = self.throw_true if worry_level % self.test == 0 else self.throw_false
-            if throw_to not in thrown_items:
-                thrown_items[throw_to] = [item]
-            else:
-                thrown_items[throw_to].append(item)
+            other_monkeys[throw_to].add_item(item)
         self.items = []
-        return thrown_items
+        return
 
     def __str__(self):
         items = ', '.join(str(item.worry_level) for item in self.items)
@@ -58,6 +54,14 @@ class Monkey:
         operation = eval(f"lambda old: {match.group(3)}")
         monkey = Monkey(monkey_id, items, operation, int(match.group(4)), int(match.group(5)), int(match.group(6)))
         return monkey
+
+
+def calculate_monkey_business(monkeys):
+    # Get the top 2 monkeys by inspection count
+    top_monkeys = sorted(monkeys.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
+    # Multiply the inspection counts of the top 2 monkeys
+    return top_monkeys[0].inspection_count * top_monkeys[1].inspection_count
+
 
 # Create dictionary of monkeys with ID as key
 monkeys = {}
@@ -79,15 +83,9 @@ rounds = 20
 for round in range(rounds):
     # Process each monkey
     for monkey in monkeys_part_1.values():
-        thrown_items = monkey.process_round()
-        if thrown_items:
-            for monkey_id, items in thrown_items.items():
-                monkeys_part_1[monkey_id].items.extend(items)
+        monkey.process_round(monkeys_part_1)
 
-# Get the top 2 monkeys by inspection count
-top_monkeys = sorted(monkeys_part_1.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
-# Multiply the inspection counts of the top 2 monkeys
-print(top_monkeys[0].inspection_count * top_monkeys[1].inspection_count)
+part_1_answer = calculate_monkey_business(monkeys_part_1)
 
 # Part 2
 rounds = 10000
@@ -100,12 +98,9 @@ for round in range(rounds):
     
     # Process each monkey
     for monkey in monkeys_part_2.values():
-        thrown_items = monkey.process_round(modulo=common_denominator)
-        if thrown_items:
-            for monkey_id, items in thrown_items.items():
-                monkeys_part_2[monkey_id].items.extend(items)
+        monkey.process_round(monkeys_part_2, modulo=common_denominator)
 
-# Get the top 2 monkeys by inspection count
-top_monkeys = sorted(monkeys_part_2.values(), key=lambda monkey: monkey.inspection_count, reverse=True)[:2]
-# Multiply the inspection counts of the top 2 monkeys
-print(top_monkeys[0].inspection_count * top_monkeys[1].inspection_count)
+part_2_answer = calculate_monkey_business(monkeys_part_2)
+
+print(f"Part 1: {part_1_answer}")
+print(f"Part 2: {part_2_answer}")
