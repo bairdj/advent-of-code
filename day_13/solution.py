@@ -1,9 +1,23 @@
 from typing import List, Union, Optional
 import os
+from functools import reduce
 
 class Packet:
     def __init__(self, contents: List[Union[List, int]]):
         self.contents = contents
+
+    # Compare with other packet using compare_items
+    def __lt__(self, other: 'Packet') -> bool:
+        return Packet.compare_items(self.contents, other.contents) == True
+
+    def __gt__(self, other: 'Packet') -> bool:
+        return Packet.compare_items(self.contents, other.contents) == False
+
+    def __eq__(self, other: 'Packet') -> bool:
+        return Packet.compare_items(self.contents, other.contents) == None
+
+    def __repr__(self) -> str:
+        return str(self.contents)
 
     @staticmethod
     def compare_items(left: Union[List, int], right: Union[List, int]) -> Optional[bool]:
@@ -72,3 +86,28 @@ for i, packet_pair in enumerate(packet_pairs):
         packet_order.append(i + 1)
 
 print(f"Sum of correct packet order indices: {sum(packet_order)}")
+
+# Part 2
+all_packets = []
+for packet_pair in packet_pairs:
+    all_packets.append(packet_pair.packet_1)
+    all_packets.append(packet_pair.packet_2)
+
+# Add divider packets
+divider_packets = [
+    Packet([[2]]),
+    Packet([[6]]),
+]
+all_packets.extend(divider_packets)
+
+all_packets.sort()
+
+# Find the indices of the divider packets
+divider_indices = []
+for i, packet in enumerate(all_packets):
+    if packet in divider_packets:
+        divider_indices.append(i + 1)
+
+decoder_key = reduce(lambda x, y: x * y, divider_indices)
+
+print(f"Decoder key: {decoder_key}")
