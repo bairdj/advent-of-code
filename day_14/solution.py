@@ -35,24 +35,27 @@ class Line:
 class Cave:
     pour_position = Coordinate(500, 0)
 
-    def __init__(self, lines):
+    def __init__(self, lines, with_floor=False):
+        self.with_floor = with_floor
         # Get all x and y coordinates
         all_coordinates = [line.origin for line in lines] + [line.destination for line in lines]
         self.min_x = min([coordinate.x for coordinate in all_coordinates])
         max_x = max([coordinate.x for coordinate in all_coordinates])
-        # Pad by 1 on each side to detect the abyss
-        self.min_x -= 1
-        max_x += 1
         width = max_x - self.min_x + 1
         # Y coordinates are inverse i.e. 0 is at the top, 1 is below that
         max_y = max([coordinate.y for coordinate in all_coordinates])
+        if self.with_floor:
+            max_y += 2
         height = max_y + 1
         self.grid = [['.' for _ in range(width)] for _ in range(height)]
         for line in lines:
             for coordinate in line.cells_covered():
-                self.grid[coordinate.y][coordinate.x - self.min_x] = '#'
+                self[coordinate] = '#'
+        if self.with_floor:
+            for x in range(self.min_x, max_x + 1):
+                self[Coordinate(x, max_y)] = '#'
         # Set pour position in grid
-        self.grid[self.pour_position.y][self.pour_position.x - self.min_x] = '+'
+        self[Cave.pour_position] = '+'
 
         
     def pretty_print(self):
@@ -71,36 +74,45 @@ class Cave:
         for i, row in enumerate(self.grid):
             print(f"{i:3d} {''.join(row)}")
 
+
+    
+    def can_pour(self, coordinate: Coordinate) -> bool:
+        value = self[coordinate]
+        if value is None:
+            return False
+        return value == '.' or value == '~'
+
     
     def pour(self) -> bool:
         current_drop = Cave.pour_position
         while True:
             self[current_drop] = '~'
-            below_coordinate = Coordinate(current_drop.x, current_drop.y + 1)
-            below = self[below_coordinate]
-            if below == '.' or below == '~':
-                current_drop = below_coordinate
+            drop_candidates = [
+                # Below
+                Coordinate(current_drop.x, current_drop.y + 1),
+                # Left diagonal
+                Coordinate(current_drop.x - 1, current_drop.y + 1),
+                # Right diagonal
+                Coordinate(current_drop.x + 1, current_drop.y + 1),
+            ]
+            abyss = False
+            poured = False
+            for drop_candidate in drop_candidates:
+                coordinate = self[drop_candidate]
+                if coordinate is None:
+                    abyss = True
+                    continue
+                if self.can_pour(drop_candidate):
+                    current_drop = drop_candidate
+                    poured = True
+                    break
+            if poured:
                 continue
-            if below is None:
-                return False
-            # Check left diagonal
-            left_diagonal_coordinate = Coordinate(current_drop.x - 1, current_drop.y + 1)
-            left_diagonal = self[left_diagonal_coordinate]
-            if left_diagonal == '.' or left_diagonal == '~':
-                current_drop = left_diagonal_coordinate
-                continue
-            if left_diagonal is None:
-                return False
-            right_diagonal_coordinate = Coordinate(current_drop.x + 1, current_drop.y + 1)
-            right_diagonal = self[right_diagonal_coordinate]
-            if right_diagonal == '.' or right_diagonal == '~':
-                current_drop = right_diagonal_coordinate
-                continue
-            if right_diagonal is None:
-                return False
+            if abyss:
+                return None
             # All possible paths are blocked. Block this cell
             self[current_drop] = 'o'
-            return True
+            return current_drop
 
     
     def pour_n(self, n: int):
@@ -113,6 +125,9 @@ class Cave:
 
     def __getitem__(self, coordinate: Coordinate) -> Optional[str]:
         if not self.coordinate_exists(coordinate):
+            # Attempt to expand the grid
+            if self.expand_grid(coordinate):
+                return self[coordinate]
             return None
         return self.grid[coordinate.y][coordinate.x - self.min_x]
 
@@ -124,6 +139,7 @@ class Cave:
 
 
     def coordinate_exists(self, coordinate: Coordinate) -> bool:
+        """If a coordinate already exists in the grid"""
         if coordinate.y < 0:
             return False
         if coordinate.y >= len(self.grid):
@@ -133,6 +149,34 @@ class Cave:
         if coordinate.x >= self.min_x + len(self.grid[0]):
             return False
         return True
+
+
+    def expand_grid(self, coordinate: Coordinate) -> bool:
+        """
+        Expands the grid to include the given coordinate.
+        Returns True if the grid was expanded, False otherwise.
+        New cells are filled with '.'.
+        """
+        if not self.with_floor:
+            return False
+        # If already in the grid, no need to expand
+        if self.coordinate_exists(coordinate):
+            return False
+        # Can expand on X, but not Y
+        if coordinate.y < 0 or coordinate.y >= len(self.grid):
+            return False
+        # Expand on X
+        if coordinate.x < self.min_x:
+            additional_width = self.min_x - coordinate.x
+            self.grid = [['.' for _ in range(additional_width)] + row for row in self.grid]
+            self.min_x = coordinate.x
+            self.grid[-1] = ['#' for _ in range(len(self.grid[-1]))]
+            return True
+        if coordinate.x >= self.min_x + len(self.grid[0]):
+            additional_width = coordinate.x - (self.min_x + len(self.grid[0])) + 1
+            self.grid = [row + ['.' for _ in range(additional_width)] for row in self.grid]
+            self.grid[-1] = ['#' for _ in range(len(self.grid[-1]))]
+            return True
 
 
 
@@ -168,3 +212,18 @@ while True:
 print(f"Poured {poured} times before reaching the abyss")
 
 cave.pretty_print()
+
+# Part 2
+cave_2 = Cave(lines, with_floor=True)
+# Keep pouring until the pour position is returned
+pours = 0
+while True:
+    result = cave_2.pour()
+    pours += 1
+    # Should be impossible as grid can expand infinitely
+    if result is None:
+        break
+    if result == Cave.pour_position:
+        break
+    
+print(f"Poured {pours} times before reaching the pour position")
