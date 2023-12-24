@@ -12,6 +12,17 @@ class PartNumber:
         if result.isdigit():
             return int(result)
         raise ValueError(f"Part number {self} is not a number")
+    
+    def covers_cell(self, cell: (int, int)) -> bool:
+        """
+        Check if a cell is covered by this part number
+        """
+        x = cell[0]
+        y = cell[1]
+        if y != self.start_y:
+            return False
+        return x >= self.start_x and x < self.start_x + self.length
+
 
     def __repr__(self):
         return f"PartNumber(x: {self.start_x}, y: {self.start_y}, len: {self.length})"
@@ -68,6 +79,8 @@ class EngineSchematic:
         """
         x = cell[0]
         y = cell[1]
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            raise ValueError(f"Cell {cell} is out of bounds")
         return self.schematic[y][x]
 
     def get_valid_part_numbers(self) -> [PartNumber]:
@@ -75,6 +88,43 @@ class EngineSchematic:
         Get all valid part numbers in the schematic
         """
         return [part for part in self._get_possible_part_numbers() if self.check_part_valid(part)]
+
+    def find_symbol(self, symbol: str) -> [(int, int)]:
+        """
+        Find all locations of a symbol in the schematic.
+        """
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.schematic[y][x] == symbol:
+                    yield (x, y)
+
+    def solve_part_2(self) -> int:
+        """
+        Solve part 2 of the puzzle.
+        
+        This involves finding all asterixes that are adjacent
+        to two valid part numbers. For these, the gear ratio is
+        the product of the two part numbers. The answer is the
+        sum of all gear ratios.
+        """
+        asterixes = list(self.find_symbol("*"))
+        if len(asterixes) == 0:
+            raise ValueError("No asterixes found in schematic")
+        part_numbers = self.get_valid_part_numbers()
+        gear_ratios = []
+        for asterix in asterixes:
+            adjacent_parts = set()
+            for neighbour in self.get_cell_neighbours(asterix):
+                adjacent = [part for part in part_numbers if part.covers_cell(neighbour)]
+                adjacent_parts.update(adjacent)
+                # Must be exactly 2, so if more can break early
+                if len(adjacent_parts) > 2:
+                    break
+            if len(adjacent_parts) == 2:
+                ratio = adjacent_parts.pop().get_number(self) * adjacent_parts.pop().get_number(self)
+                gear_ratios.append(ratio)
+        return sum(gear_ratios)
+
 
 
 
@@ -85,4 +135,6 @@ if __name__ == "__main__":
         parts = list(schematic.get_valid_part_numbers())
         part_1_answer = sum(part.get_number(schematic) for part in parts)
         print(f"Part 1 answer: {part_1_answer}")
+
+        print(f"Part 2 answer: {schematic.solve_part_2()}")
     
