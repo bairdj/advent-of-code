@@ -1,4 +1,5 @@
 import re
+from math import prod
 
 class GameSet:
     SET_PATTERN = re.compile(r"(\d+) (\w+)")
@@ -62,15 +63,44 @@ class Game:
                 return False
         return True
 
+    def get_minimum_cubes_per_colour(self) -> {str: int}:
+        """
+        Returns the minimum number of cubes of each colour required
+        to play this game.
+        """
+        minimum_cubes = {}
+        for game_set in self.sets:
+            for colour, n in game_set.colours.items():
+                if colour not in minimum_cubes or n > minimum_cubes[colour]:
+                    minimum_cubes[colour] = n
+        return minimum_cubes
+
+    def get_cube_power(self) -> int:
+        """
+        The cube power is required for part 2 of the puzzle.
+        This is the multiplication of the minimum number of cubes
+        of each colour required to play the game.
+        """
+        minimum_cubes = self.get_minimum_cubes_per_colour()
+        return prod(minimum_cubes.values())
 
 
-def solve(puzzle_input: [str]) -> int:
+
+
+def solve(puzzle_input: [str]) -> (int, int):
+    """
+    Solve the puzzle.
+
+    Returns a tuple containing the answers to part 1 and part 2.
+    """
     games = [Game.from_line(line) for line in puzzle_input]
     # Need to know which games are possible if the bag only
     # contained 12 red cubes, 13 green cubes and 14 blue cubes
     colours = {"red": 12, "green": 13, "blue": 14}
     possible_games = [game for game in games if game.check_multiple_colours(colours)]
-    return sum(game.id for game in possible_games)
+    part_1_answer = sum(game.id for game in possible_games)
+    part_2_answer = sum(game.get_cube_power() for game in games)
+    return part_1_answer, part_2_answer
 
 if __name__ == "__main__":
     with open("input.txt", "r", encoding="utf-8") as f:
