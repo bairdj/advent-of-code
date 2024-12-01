@@ -1,13 +1,40 @@
-defmodule AdventOfCode.Day5.Mapping do
-  defstruct [:from, :to, :ids]
+defmodule AdventOfCode.Day5.Range do
+  defstruct [:source_start, :offset, :length]
 
-  def new(from, to, ids) do
-    %__MODULE__{from: from, to: to, ids: ids}
+  def new(source_start, destination_start, length) do
+    %__MODULE__{
+      source_start: source_start,
+      offset: destination_start - source_start,
+      length: length
+    }
+  end
+
+  def get(%__MODULE__{source_start: start, length: length}, key)
+      when key < start or key >= start + length,
+      do: nil
+
+  def get(%__MODULE__{source_start: start, offset: offset}, key) do
+    key + offset
+  end
+end
+
+defmodule AdventOfCode.Day5.Mapping do
+  defstruct [:from, :to, :ranges]
+  alias AdventOfCode.Day5.Range
+
+  def new(from, to, ranges) do
+    %__MODULE__{from: from, to: to, ranges: ranges}
+  end
+
+  def get(%__MODULE__{ranges: ranges}, key) do
+    Enum.find_value(ranges, key, &Range.get(&1, key))
   end
 end
 
 defmodule AdventOfCode.Day5 do
   @mapping_regex ~r/^(?<from>[[:alpha:]]+)-to-(?<to>[[:alpha:]]+) map:$/
+  alias AdventOfCode.Day5.Mapping
+  alias AdventOfCode.Day5.Range
 
   def build_id_mapping({destination_start, source_start, length}) do
     [source_start, destination_start]
@@ -36,12 +63,14 @@ defmodule AdventOfCode.Day5 do
       ids
       |> Enum.map(&parse_id_line/1)
       |> Enum.reject(&is_nil/1)
-      |> Enum.map(&build_id_mapping/1)
+      |> Enum.map(fn {destination, source, length} ->
+        Range.new(source, destination, length)
+      end)
 
     AdventOfCode.Day5.Mapping.new(
       label_address["from"],
       label_address["to"],
-      Enum.reduce(mapped_ids, %{}, fn map, acc -> Map.merge(acc, map) end)
+      mapped_ids
     )
   end
 
@@ -54,13 +83,13 @@ defmodule AdventOfCode.Day5 do
         nil
 
       matched_map when matched_map.to == destination_type ->
-        Map.get(matched_map.ids, source_id, source_id)
+        Mapping.get(matched_map, source_id)
 
       matched_map ->
         search_paths(
           mapping,
           matched_map.to,
-          Map.get(matched_map.ids, source_id, source_id),
+          Mapping.get(matched_map, source_id),
           destination_type
         )
     end
