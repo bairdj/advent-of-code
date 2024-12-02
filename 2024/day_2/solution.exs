@@ -17,6 +17,14 @@ defmodule AdventOfCode.Day2 do
     result != false
   end
 
+  @spec without_one([integer()]) :: [[integer()]]
+  def without_one(sequence) do
+    0..(length(sequence) - 1)
+    |> Enum.map(fn to_drop ->
+      List.delete_at(sequence, to_drop)
+    end)
+  end
+
   defp delta(previous, current) do
     change = abs(current - previous)
 
@@ -40,14 +48,25 @@ defmodule AdventOfCode.Day2.Solver do
 
   def solve_part_1(input) do
     input
-    |> Enum.filter(&AdventOfCode.Day2.safe?(&1))
-    |> Enum.count()
+    |> Enum.count(&AdventOfCode.Day2.safe?(&1))
+  end
+
+  def solve_part_2(input) do
+    input
+    |> Enum.count(fn seq ->
+      case AdventOfCode.Day2.safe?(seq) do
+        true -> true
+        # If failed, try all of the possibilities with one number removed
+        false -> Enum.any?(AdventOfCode.Day2.without_one(seq), &AdventOfCode.Day2.safe?/1)
+      end
+    end)
   end
 
   def run() do
     input = parse_input("input.txt")
 
     IO.puts("Part 1: #{solve_part_1(input)}")
+    IO.puts("Part 2: #{solve_part_2(input)}")
   end
 end
 
