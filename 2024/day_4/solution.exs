@@ -18,6 +18,13 @@ defmodule AdventOfCode.Day4.Grid do
     {-1, 1}
   ]
 
+  @diag_deltas %{
+    ul: {-1, -1},
+    ur: {-1, 1},
+    dl: {1, -1},
+    dr: {1, 1}
+  }
+
   def new(grid) do
     grid
     |> Enum.with_index()
@@ -71,19 +78,6 @@ defmodule AdventOfCode.Day4.Grid do
     end)
   end
 
-  def search_row(row, letter) do
-    row
-    |> Enum.with_index()
-    |> Enum.flat_map(fn
-      {l, c} when l == letter -> [c]
-      _ -> []
-    end)
-  end
-
-  def exists?(grid, pos) do
-    Map.has_key?(grid, pos)
-  end
-
   def letter_at(grid, pos) do
     Map.get(grid, pos)
   end
@@ -91,6 +85,32 @@ defmodule AdventOfCode.Day4.Grid do
   def apply_delta({r, c}, {dr, dc}) do
     {r + dr, c + dc}
   end
+
+  @doc """
+  An X-MAS is a cross symbol made up of two diagonal lines with letters MAS
+  intersecting at the middle. The SAMs can be in any direction. The A is
+  always the intersection. Therefore, we can search for finding A and then
+  checking if any of the neighbours have the correct pattern.
+  """
+  def xmas?(grid, a_position) do
+    diagonal_neighbours(grid, a_position)
+    |> diagonal_xmas?()
+  end
+
+  defp diagonal_neighbours(grid, pos) do
+    @diag_deltas
+    |> Enum.map(fn {label, delta} -> {label, letter_at(grid, apply_delta(pos, delta))} end)
+    |> Enum.into(%{})
+  end
+
+  defp diagonal_xmas?(%{} = neighbours) do
+    diagonal_pair_valid?(neighbours.ul, neighbours.dr) and
+      diagonal_pair_valid?(neighbours.ur, neighbours.dl)
+  end
+
+  defp diagonal_pair_valid?("M", "S"), do: true
+  defp diagonal_pair_valid?("S", "M"), do: true
+  defp diagonal_pair_valid?(_, _), do: false
 end
 
 defmodule AdventOfCode.Day4 do
@@ -110,10 +130,18 @@ defmodule AdventOfCode.Day4 do
     |> Enum.count()
   end
 
+  def solve_part_2(grid) do
+    grid
+    |> Grid.search_letter("A")
+    |> Enum.count(fn pos -> Grid.xmas?(grid, pos) end)
+  end
+
   def run() do
     grid = parse_grid("input.txt")
 
     IO.puts("Part 1: #{solve_part_1(grid)}")
+
+    IO.puts("Part 2: #{solve_part_2(grid)}")
   end
 end
 
