@@ -25,6 +25,46 @@ defmodule AdventOfCode.Day5.Rule do
     split = div(Enum.count(list), 2)
     Enum.at(list, split)
   end
+
+  @doc """
+  Reorder an update so that all rules are met.
+  """
+  @spec reorder_update([Rule.t()], [integer()]) :: [integer()]
+  def reorder_update(rules, update) when is_list(rules) and is_list(update) do
+    rule_map = as_rule_map(rules)
+    Enum.sort(update, fn a, b -> compare_elements(a, b, rule_map) end)
+  end
+
+  def compare_elements(a, b, rule_map) do
+    {smaller, larger} = if a < b, do: {a, b}, else: {b, a}
+
+    # Return true if a precedes b
+    # Returns false if b precedes a
+    case Map.get(rule_map, {smaller, larger}) do
+      # No rule - consider them equal
+      nil -> true
+      # Smaller before larger, therefore true if a is smaller
+      :lt -> smaller == a
+      # Larger before smaller, therefore true if a is larger
+      :gt -> larger == a
+    end
+  end
+
+  @doc """
+  Converts a list of rules into a map for faster lookup. The key is a tuple
+  of form {smaller, larger} and the value is either :lt or :gt.
+  """
+  def as_rule_map(rules) do
+    rules
+    |> Enum.map(fn %__MODULE__{pre: pre, post: post} ->
+      case {pre, post} do
+        {a, b} when a < b -> {{a, b}, :lt}
+        {a, b} when a > b -> {{b, a}, :gt}
+        _ -> raise "Invalid rule"
+      end
+    end)
+    |> Enum.into(%{})
+  end
 end
 
 defmodule AdventOfCode.Day5.Solver do
@@ -67,10 +107,22 @@ defmodule AdventOfCode.Day5.Solver do
     |> Enum.sum()
   end
 
+  def solve_part_2(rules, updates) do
+    updates
+    |> Enum.filter(fn update -> not Rule.update_valid?(rules, update) end)
+    |> Enum.map(fn update ->
+      Rule.reorder_update(rules, update)
+    end)
+    |> Enum.map(&Rule.middle_value/1)
+    |> Enum.sum()
+  end
+
   def run do
     {rules, updates} = parse_input("input.txt")
 
     IO.puts("Part 1: #{solve_part_1(rules, updates)}")
+
+    IO.puts("Part 2: #{solve_part_2(rules, updates)}")
   end
 end
 
