@@ -4,20 +4,26 @@ defmodule AdventOfCode.Day7 do
     &(&1*&2)
   ]
 
-  def valid_equation?(%{result: result, inputs: inputs}) do
+  @part_2_operators [
+    &(&1+&2),
+    &(&1*&2),
+    &AdventOfCode.Day7.concat_integers/2
+  ]
+
+  def valid_equation?(%{result: result, inputs: inputs}, operators \\ @operators) do
     inputs
-    |> build_candidate_tree()
+    |> build_candidate_tree(operators)
     |> resolve_candidate()
     |> Enum.find(&(&1 == result)) != nil
   end
 
-  def build_candidate_tree([last]) do
+  def build_candidate_tree([last], _) do
     last
   end
 
-  def build_candidate_tree([head | rest]) do
-    Enum.map(@operators, fn op ->
-      {head, op, build_candidate_tree(rest)}
+  def build_candidate_tree([head | rest], operators \\ @operators) do
+    Enum.map(operators, fn op ->
+      {head, op, build_candidate_tree(rest, operators)}
     end)
   end
 
@@ -35,6 +41,10 @@ defmodule AdventOfCode.Day7 do
   def resolve_candidate(candidates) when is_list(candidates) do
     candidates
     |> Enum.flat_map(&resolve_candidate/1)
+  end
+
+  def concat_integers(a, b) when is_integer(a) and is_integer(b) do
+    String.to_integer("#{a}#{b}")
   end
 
   def parse_input(path) do
@@ -58,9 +68,14 @@ defmodule AdventOfCode.Day7 do
   def solve_part_1(input) do
     input
     |> Enum.filter(&valid_equation?/1)
-    |> IO.inspect()
     |> Enum.map(&(&1.result))
+    |> Enum.sum()
+  end
 
+  def solve_part_2(input) do
+    input
+    |> Enum.filter(&(valid_equation?(&1, @part_2_operators)))
+    |> Enum.map(&(&1.result))
     |> Enum.sum()
   end
 
@@ -68,6 +83,7 @@ defmodule AdventOfCode.Day7 do
     input = parse_input("input.txt")
 
     IO.puts("Part 1: #{solve_part_1(input)}")
+    IO.puts("Part 2: #{solve_part_2(input)}")
 
   end
 
