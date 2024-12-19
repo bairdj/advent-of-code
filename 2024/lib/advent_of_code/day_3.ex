@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day3 do
+  @behaviour AdventOfCode.Solver
+
   @mul_pattern ~r/mul\((\d+),(\d+)\)/
   @do_pattern ~r/do\(\)/
   @dont_pattern ~r/don't\(\)/
@@ -23,7 +25,7 @@ defmodule AdventOfCode.Day3 do
 
   def extract_mul_conditional(string, :disabled) do
     case Regex.split(@do_pattern, string, parts: 2) do
-      [to_parse, rest] ->
+      [_, rest] ->
         extract_mul_conditional(rest, :enabled)
 
       [to_parse] ->
@@ -35,6 +37,12 @@ defmodule AdventOfCode.Day3 do
     a * b
   end
 
+  @impl AdventOfCode.Solver
+  def parse_input(path) do
+    File.read!(path)
+  end
+
+  @impl AdventOfCode.Solver
   def solve_part_1(input) do
     input
     |> extract_mul()
@@ -42,19 +50,11 @@ defmodule AdventOfCode.Day3 do
     |> Enum.sum()
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_2(input) do
     input
     |> extract_mul_conditional(:enabled)
     |> Enum.map(&eval_mul/1)
     |> Enum.sum()
   end
-
-  def run do
-    input = File.read!("input.txt")
-
-    IO.puts("Part 1: #{solve_part_1(input)}")
-    IO.puts("Part 2: #{solve_part_2(input)}")
-  end
 end
-
-AdventOfCode.Day3.run()

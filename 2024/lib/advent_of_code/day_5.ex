@@ -67,9 +67,11 @@ defmodule AdventOfCode.Day5.Rule do
   end
 end
 
-defmodule AdventOfCode.Day5.Solver do
+defmodule AdventOfCode.Day5 do
+  @behaviour AdventOfCode.Solver
   alias AdventOfCode.Day5.Rule
 
+  @impl AdventOfCode.Solver
   def parse_input(path) do
     [rule_block, update_block] =
       path
@@ -100,14 +102,16 @@ defmodule AdventOfCode.Day5.Solver do
     |> Enum.map(&String.to_integer/1)
   end
 
-  def solve_part_1(rules, updates) do
+  @impl AdventOfCode.Solver
+  def solve_part_1({rules, updates}) do
     updates
     |> Enum.filter(&Rule.update_valid?(rules, &1))
     |> Enum.map(&Rule.middle_value/1)
     |> Enum.sum()
   end
 
-  def solve_part_2(rules, updates) do
+  @impl AdventOfCode.Solver
+  def solve_part_2({rules, updates}) do
     updates
     |> Enum.filter(fn update -> not Rule.update_valid?(rules, update) end)
     |> Enum.map(fn update ->
@@ -116,14 +120,4 @@ defmodule AdventOfCode.Day5.Solver do
     |> Enum.map(&Rule.middle_value/1)
     |> Enum.sum()
   end
-
-  def run do
-    {rules, updates} = parse_input("input.txt")
-
-    IO.puts("Part 1: #{solve_part_1(rules, updates)}")
-
-    IO.puts("Part 2: #{solve_part_2(rules, updates)}")
-  end
 end
-
-AdventOfCode.Day5.Solver.run()

@@ -1,4 +1,6 @@
 defmodule AdventOfCode.Day2 do
+  @behaviour AdventOfCode.Solver
+
   @spec safe?([integer()]) :: boolean()
   def safe?(sequence) do
     [start | rest] = sequence
@@ -33,9 +35,8 @@ defmodule AdventOfCode.Day2 do
       false -> {:decrease, change}
     end
   end
-end
 
-defmodule AdventOfCode.Day2.Solver do
+  @impl AdventOfCode.Solver
   def parse_input(path) do
     File.read!(path)
     |> String.split("\n")
@@ -46,28 +47,21 @@ defmodule AdventOfCode.Day2.Solver do
     end)
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_1(input) do
     input
-    |> Enum.count(&AdventOfCode.Day2.safe?(&1))
+    |> Enum.count(&safe?(&1))
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_2(input) do
     input
     |> Enum.count(fn seq ->
       case AdventOfCode.Day2.safe?(seq) do
         true -> true
         # If failed, try all of the possibilities with one number removed
-        false -> Enum.any?(AdventOfCode.Day2.without_one(seq), &AdventOfCode.Day2.safe?/1)
+        false -> Enum.any?(without_one(seq), &AdventOfCode.Day2.safe?/1)
       end
     end)
   end
-
-  def run() do
-    input = parse_input("input.txt")
-
-    IO.puts("Part 1: #{solve_part_1(input)}")
-    IO.puts("Part 2: #{solve_part_2(input)}")
-  end
 end
-
-AdventOfCode.Day2.Solver.run()

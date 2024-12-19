@@ -1,5 +1,13 @@
-# Languages used
+The 2024 answers are an Elixir Mix project.
 
-Day 1: Elixir
-Day 2: Elixir
-Day 3: Elixir
+To run the solution for a day, run:
+
+```bash
+mix solve <day> <input_path>
+```
+
+For example, to solve day 1 run:
+
+```bash
+mix solve 1 input/day_1.txt
+```

@@ -114,9 +114,11 @@ defmodule AdventOfCode.Day4.Grid do
 end
 
 defmodule AdventOfCode.Day4 do
+  @behaviour AdventOfCode.Solver
   alias AdventOfCode.Day4.Grid
 
-  def parse_grid(path) do
+  @impl AdventOfCode.Solver
+  def parse_input(path) do
     path
     |> File.read!()
     |> String.split("\n")
@@ -124,25 +126,17 @@ defmodule AdventOfCode.Day4 do
     |> Grid.new()
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_1(grid) do
     grid
     |> Grid.search_all("XMAS")
     |> Enum.count()
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_2(grid) do
     grid
     |> Grid.search_letter("A")
     |> Enum.count(fn pos -> Grid.xmas?(grid, pos) end)
   end
-
-  def run() do
-    grid = parse_grid("input.txt")
-
-    IO.puts("Part 1: #{solve_part_1(grid)}")
-
-    IO.puts("Part 2: #{solve_part_2(grid)}")
-  end
 end
-
-AdventOfCode.Day4.run()

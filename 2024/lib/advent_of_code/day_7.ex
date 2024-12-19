@@ -1,12 +1,13 @@
 defmodule AdventOfCode.Day7 do
+  @behaviour AdventOfCode.Solver
   @operators [
-    &(&1+&2),
-    &(&1*&2)
+    &(&1 + &2),
+    &(&1 * &2)
   ]
 
   @part_2_operators [
-    &(&1+&2),
-    &(&1*&2),
+    &(&1 + &2),
+    &(&1 * &2),
     &AdventOfCode.Day7.concat_integers/2
   ]
 
@@ -17,11 +18,13 @@ defmodule AdventOfCode.Day7 do
     |> Enum.find(&(&1 == result)) != nil
   end
 
+  def build_candidate_tree(inputs, operators \\ @operators)
+
   def build_candidate_tree([last], _) do
     last
   end
 
-  def build_candidate_tree([head | rest], operators \\ @operators) do
+  def build_candidate_tree([head | rest], operators) do
     Enum.map(operators, fn op ->
       {head, op, build_candidate_tree(rest, operators)}
     end)
@@ -47,6 +50,7 @@ defmodule AdventOfCode.Day7 do
     String.to_integer("#{a}#{b}")
   end
 
+  @impl AdventOfCode.Solver
   def parse_input(path) do
     File.read!(path)
     |> String.split("\n", trim: true)
@@ -55,9 +59,11 @@ defmodule AdventOfCode.Day7 do
 
   def parse_line(line) do
     [result, inputs] = String.split(line, ": ", trim: true)
-    inputs_numeric = inputs
-    |> String.split(" ")
-    |> Enum.map(&String.to_integer/1)
+
+    inputs_numeric =
+      inputs
+      |> String.split(" ")
+      |> Enum.map(&String.to_integer/1)
 
     %{
       result: String.to_integer(result),
@@ -65,28 +71,19 @@ defmodule AdventOfCode.Day7 do
     }
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_1(input) do
     input
     |> Enum.filter(&valid_equation?/1)
-    |> Enum.map(&(&1.result))
+    |> Enum.map(& &1.result)
     |> Enum.sum()
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_2(input) do
     input
-    |> Enum.filter(&(valid_equation?(&1, @part_2_operators)))
-    |> Enum.map(&(&1.result))
+    |> Enum.filter(&valid_equation?(&1, @part_2_operators))
+    |> Enum.map(& &1.result)
     |> Enum.sum()
   end
-
-  def run() do
-    input = parse_input("input.txt")
-
-    IO.puts("Part 1: #{solve_part_1(input)}")
-    IO.puts("Part 2: #{solve_part_2(input)}")
-
-  end
-
 end
-
-AdventOfCode.Day7.run()
