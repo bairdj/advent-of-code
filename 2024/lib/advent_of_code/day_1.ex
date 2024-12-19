@@ -1,5 +1,7 @@
 defmodule AdventOfCode.Day1 do
-  @spec parse_input(String.t()) :: {list(), list()}
+  @behaviour AdventOfCode.Solver
+
+  @impl AdventOfCode.Solver
   def parse_input(path) do
     path
     |> File.stream!()
@@ -7,12 +9,22 @@ defmodule AdventOfCode.Day1 do
     |> Enum.unzip()
   end
 
+  defp parse_line(line) do
+    line
+    |> String.trim()
+    |> String.split(~r/\s+/, parts: 2)
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
+  end
+
+  @impl AdventOfCode.Solver
   def solve_part_1({lhs, rhs}) do
     Enum.zip(Enum.sort(lhs), Enum.sort(rhs))
     |> Enum.map(fn {l, r} -> abs(l - r) end)
     |> Enum.sum()
   end
 
+  @impl AdventOfCode.Solver
   def solve_part_2({lhs, rhs}) do
     # Cache RHS counts
     rhs_counts = rhs |> Enum.frequencies()
@@ -23,16 +35,4 @@ defmodule AdventOfCode.Day1 do
     end)
     |> Enum.sum()
   end
-
-  defp parse_line(line) do
-    line
-    |> String.trim()
-    |> String.split(~r/\s+/, parts: 2)
-    |> Enum.map(&String.to_integer/1)
-    |> List.to_tuple()
-  end
 end
-
-input = AdventOfCode.Day1.parse_input("input.txt")
-IO.puts("Part 1 answer: #{AdventOfCode.Day1.solve_part_1(input)}")
-IO.puts("Part 2 answer: #{AdventOfCode.Day1.solve_part_2(input)}")
