@@ -1,5 +1,6 @@
 defmodule AdventOfCode.Day8 do
   @behaviour AdventOfCode.Solver
+  alias AdventOfCode.Grid
 
   @doc """
   Determine the location of antinodes for a given set of locations. This
@@ -13,6 +14,18 @@ defmodule AdventOfCode.Day8 do
     end)
   end
 
+  def build_antinodes_part_2(locations, grid) do
+    locations
+    |> all_location_pairs()
+    |> Enum.flat_map(fn {loc_1, loc_2} ->
+      # The difference to part 1 is that the same logic applies but it loops
+      # adding antinodes until we hit the edge of the grid instead of just 1
+      dir_1 = apply_until_edge(loc_1, location_delta(loc_1, loc_2), grid)
+      dir_2 = apply_until_edge(loc_2, location_delta(loc_2, loc_1), grid)
+      dir_1 ++ dir_2
+    end)
+  end
+
   defp all_location_pairs(locations) when is_list(locations) do
     locations
     |> Enum.with_index()
@@ -22,7 +35,7 @@ defmodule AdventOfCode.Day8 do
       |> Enum.map(fn location_2 ->
         [location_1, location_2]
         # Ensure consistent ordering (x then y [both ascending])
-        |> Enum.sort(&AdventOfCode.Grid.compare_points/2)
+        |> Enum.sort(&Grid.compare_points/2)
         |> List.to_tuple()
       end)
     end)
@@ -39,7 +52,20 @@ defmodule AdventOfCode.Day8 do
   # Call again in other direction to get the other antinode
   defp get_antinode(loc_1, loc_2) do
     delta = location_delta(loc_1, loc_2) |> invert_delta()
-    AdventOfCode.Grid.apply_direction(loc_1, delta)
+    Grid.apply_direction(loc_1, delta)
+  end
+
+  defp apply_until_edge(location, delta, grid) do
+    case Grid.in_bounds?(grid, location) do
+      true ->
+        [
+          location
+          | apply_until_edge(Grid.apply_direction(location, delta), delta, grid)
+        ]
+
+      false ->
+        []
+    end
   end
 
   defp build_frequencies(points) do
@@ -53,7 +79,7 @@ defmodule AdventOfCode.Day8 do
     grid =
       File.read!(path)
       |> String.split("\n")
-      |> AdventOfCode.Grid.from_lines()
+      |> Grid.from_lines()
 
     # Rearrange the points map to be grouped by value (as we will be doing pairwise stuff)
     frequencies = build_frequencies(grid.points)
@@ -71,12 +97,17 @@ defmodule AdventOfCode.Day8 do
     # Deduplicate
     |> MapSet.new()
     # Filter out any antinodes that are outside the grid
-    |> Enum.filter(&AdventOfCode.Grid.in_bounds?(grid, &1))
+    |> Enum.filter(&Grid.in_bounds?(grid, &1))
     |> Enum.count()
   end
 
   @impl AdventOfCode.Solver
-  def solve_part_2(_) do
-    raise "Not implemented"
+  def solve_part_2({grid, frequencies}) do
+    frequencies
+    |> Enum.flat_map(fn {_, locations} ->
+      build_antinodes_part_2(locations, grid)
+    end)
+    |> MapSet.new()
+    |> Enum.count()
   end
 end
