@@ -61,7 +61,7 @@ defmodule AdventOfCode.Grid do
   If the point is outside the grid, this will return `nil`.
   """
   @spec get(%__MODULE__{}, point) :: any() | nil
-  def get(grid, {x, y}), do: Map.get(grid, {x, y})
+  def get(%__MODULE__{points: points}, {x, y}), do: Map.get(points, {x, y})
 
   @doc """
   Get the dimensions of the grid.
@@ -121,4 +121,21 @@ defmodule AdventOfCode.Grid do
   Apply a direction (dx, dy) to a point (x, y).
   """
   def apply_direction({x, y}, {dx, dy}), do: {x + dx, y + dy}
+
+  @doc """
+  Get the locations where the cell has the given value.
+  """
+  def locations_of(%__MODULE__{points: points}, value) do
+    points
+    |> Map.filter(fn {_point, cell_value} -> cell_value == value end)
+    |> Map.keys()
+  end
+
+  def map(%__MODULE__{points: points} = grid, fun) do
+    converted =
+      Enum.map(points, fn {{x, y}, value} -> {{x, y}, fun.(value)} end)
+      |> Map.new()
+
+    %__MODULE__{grid | points: converted}
+  end
 end
