@@ -17,9 +17,13 @@ fn is_valid_number(number: usize, max_repeats: Option<usize>) -> bool {
             continue;
         }
 
-        let repeated_string = buffer.repeat(repeats);
+        let is_repeating = (0..repeats).all(|i| {
+            let start = i * poss_length;
+            let end = start + poss_length;
+            &num_str[start..end] == buffer
+        });
 
-        if repeated_string.eq(&num_str) {
+        if is_repeating {
             return false;
         }
     }
