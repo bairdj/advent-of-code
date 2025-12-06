@@ -3,6 +3,7 @@ use std::{env::{Args, args}, fs::File};
 mod days{
     pub mod day_01;
     pub mod day_02;
+    pub mod day_03;
 }
 
 struct AocArgs {
@@ -26,6 +27,7 @@ fn main() {
     match args.day {
         1 => days::day_01::run(input),
         2 => days::day_02::run(&mut input),
+        3 => days::day_03::run(&mut input),
         _ => panic!("Day not implemented"),
     }
 }
