@@ -8,10 +8,9 @@ fn get_largest_joltage(bank: &str) -> u32 {
         .map(|c| c.to_digit(10).expect("Must be a digit"))
         .collect();
 
-
     let mut max: u32 = 0;
     for i in 0..batteries.len() {
-        for j in (i+1)..batteries.len() {
+        for j in (i + 1)..batteries.len() {
             let combination = batteries[i] * RADIX + batteries[j];
             if combination > max {
                 max = combination;

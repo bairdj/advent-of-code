@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::io::BufReader;
 use std::io::BufRead;
+use std::io::BufReader;
 
 const DIAL_SIZE: usize = 100;
 const TARGET: usize = 0;
@@ -76,15 +76,14 @@ pub fn run(input: File) {
     let reader = BufReader::new(input);
 
     let rotations: Vec<Rotation> = reader
-    .lines()
-    .filter_map(Result::ok)
-    .map(parse_line)
-    .collect();
+        .lines()
+        .filter_map(Result::ok)
+        .map(parse_line)
+        .collect();
 
     let part_1 = solve_part_1(&rotations, INITIAL_VALUE);
     println!("Part 1: {}", part_1);
 
     let part_2 = solve_part_2(&rotations, INITIAL_VALUE);
     println!("Part 2: {}", part_2);
-
 }

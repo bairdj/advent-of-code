@@ -1,6 +1,9 @@
-use std::{env::{Args, args}, fs::File};
+use std::{
+    env::{args, Args},
+    fs::File,
+};
 
-mod days{
+mod days {
     pub mod day_01;
     pub mod day_02;
     pub mod day_03;
@@ -8,16 +11,19 @@ mod days{
 
 struct AocArgs {
     day: u8,
-    path: String
+    path: String,
 }
 
 fn parse_args(args: &mut Args) -> AocArgs {
-    let day: u8 = args.nth(1).expect("Must provide day").parse().expect("Day must be a number");
+    let day: u8 = args
+        .nth(1)
+        .expect("Must provide day")
+        .parse()
+        .expect("Day must be a number");
     let path: String = args.next().expect("Must provide path");
 
     return AocArgs { day, path };
 }
-
 
 fn main() {
     let args = parse_args(&mut args());

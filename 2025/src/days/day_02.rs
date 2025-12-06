@@ -1,6 +1,6 @@
+use std::fs::File;
 use std::io::Read;
 use std::ops::Range;
-use std::fs::File;
 
 fn is_valid_number(number: usize, max_repeats: Option<usize>) -> bool {
     let num_str = number.to_string();
@@ -33,26 +33,31 @@ fn is_valid_number(number: usize, max_repeats: Option<usize>) -> bool {
 
 fn sum_invalid_numbers(ranges: &[Range<usize>], max_repeats: Option<usize>) -> usize {
     ranges
-    .iter()
-    .flat_map(|range| range.clone())
-    .filter(|&num| !is_valid_number(num, max_repeats))
-    .sum()
+        .iter()
+        .flat_map(|range| range.clone())
+        .filter(|&num| !is_valid_number(num, max_repeats))
+        .sum()
 }
 
 fn extract_ranges(input: &str) -> Vec<Range<usize>> {
-    input.split(',').map(|range| {
-        let (start, end) = range.split_once('-').unwrap();
-        Range {
-            start: start.parse().unwrap(),
-            end: end.parse::<usize>().unwrap() + 1,
-        }
-    }).collect()
+    input
+        .split(',')
+        .map(|range| {
+            let (start, end) = range.split_once('-').unwrap();
+            Range {
+                start: start.parse().unwrap(),
+                end: end.parse::<usize>().unwrap() + 1,
+            }
+        })
+        .collect()
 }
 
 pub fn run(input: &mut File) {
     // Input is a single line
     let mut buffer = String::new();
-    input.read_to_string(&mut buffer).expect("Failed to read input as string");
+    input
+        .read_to_string(&mut buffer)
+        .expect("Failed to read input as string");
 
     let ranges = extract_ranges(&buffer);
 
