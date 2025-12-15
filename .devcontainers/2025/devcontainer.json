@@ -1,0 +1,11 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/rust:latest",
+    "workspaceFolder": "2025",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer"
+            ]
+        }
+    }
+}
